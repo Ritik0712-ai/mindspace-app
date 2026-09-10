@@ -36,8 +36,10 @@ function LoginForm() {
         toast.error(result.error);
       } else {
         toast.success("Welcome back! 💙");
-        router.push(callbackUrl);
-        router.refresh();
+        // Use window.location for reliable post-login redirect — router.push()
+        // can race with NextAuth session hydration on Next.js App Router,
+        // causing the protected page to see no session and redirect back.
+        window.location.href = callbackUrl;
       }
     } catch (error) {
       console.error("Login error:", error);

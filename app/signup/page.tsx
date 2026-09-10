@@ -65,10 +65,11 @@ export default function SignupPage() {
 
       if (signInResult?.error) {
         toast.error("Account created but couldn't sign in. Please login.");
-        router.push("/login");
+        window.location.href = "/login";
       } else {
         toast.success("Welcome to MindSpace! 💙");
-        router.push("/onboarding");
+        // window.location for reliable post-signup redirect
+        window.location.href = "/onboarding";
       }
     } catch (error) {
       console.error("Signup error:", error);
