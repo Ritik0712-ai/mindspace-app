@@ -4,10 +4,28 @@
 import OpenAI from "openai";
 import { detectCrisis, getCrisisMessage, type CrisisLevel } from "./crisis";
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazily initialize the OpenAI client. Instantiating it at module scope with
+// no API key crashes the Vercel build (the SDK throws in its constructor),
+// so we only construct it the first time it's actually needed, inside a
+// try/catch that falls back to the canned response below.
+let openai: OpenAI | null = null;
+let openaiInitAttempted = false;
+
+function getOpenAIClient(): OpenAI | null {
+  if (openaiInitAttempted) return openai;
+  openaiInitAttempted = true;
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey || apiKey.startsWith("sk-placeholder")) {
+    return null;
+  }
+  try {
+    openai = new OpenAI({ apiKey });
+  } catch (error) {
+    console.error("Failed to initialize OpenAI client:", error);
+    openai = null;
+  }
+  return openai;
+}
 
 // System prompt for the AI companion - warm, empathetic, non-clinical
 const SYSTEM_PROMPT = `You are a warm, empathetic companion on MindSpace, a mental health support platform for Indians.
@@ -71,8 +89,19 @@ export async function getAIJournalResponse(
 
 Please respond with empathy and warmth.`;
 
+  const client = getOpenAIClient();
+  if (!client) {
+    return {
+      response: `Thank you for sharing what you've written, ${pseudonym}. I'm here to listen. Your feelings are valid, and it's okay to take your time.
+
+How are you feeling right now after writing this? 💙`,
+      isCrisis: false,
+      riskLevel: "none",
+    };
+  }
+
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },

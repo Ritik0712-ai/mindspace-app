@@ -1,21 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
 
-// In-memory storage for demo
-const userProfiles: Map<string, {
-  userId: string;
-  primaryConcern: string[];
-  language: string;
-  notificationsOn: boolean;
-  reminderTime: string | null;
-  crisisContact: string | null;
-  onboardingComplete: boolean;
-}> = new Map();
+const VALID_CONCERNS = [
+  "anxiety",
+  "depression",
+  "stress",
+  "relationships",
+  "family",
+  "loneliness",
+  "identity",
+  "exploring",
+];
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+    const userId = session.user.id;
+
     const body = await request.json();
     const {
-      userId = "demo_user",
       primaryConcern = [],
       language = "en",
       notificationsOn = true,
@@ -23,32 +31,35 @@ export async function POST(request: NextRequest) {
       crisisContact = null,
     } = body;
 
-    // Validate primary concerns if provided
-    const validConcerns = [
-      "anxiety",
-      "depression",
-      "stress",
-      "relationships",
-      "family",
-      "loneliness",
-      "identity",
-      "exploring",
-    ];
-
     const filteredConcerns = (primaryConcern as string[]).filter((c: string) =>
-      validConcerns.includes(c)
+      VALID_CONCERNS.includes(c)
     );
 
-    // Store profile (mock)
-    userProfiles.set(userId, {
-      userId,
-      primaryConcern: filteredConcerns,
-      language,
-      notificationsOn,
-      reminderTime,
-      crisisContact,
-      onboardingComplete: true,
+    await prisma.profile.upsert({
+      where: { userId },
+      update: {
+        primaryConcern: filteredConcerns,
+        notificationsOn,
+        reminderTime,
+        crisisContact,
+        onboardingComplete: true,
+      },
+      create: {
+        userId,
+        primaryConcern: filteredConcerns,
+        notificationsOn,
+        reminderTime,
+        crisisContact,
+        onboardingComplete: true,
+      },
     });
+
+    if (language) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { language },
+      });
+    }
 
     return NextResponse.json(
       {
@@ -74,13 +85,30 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json(
-    {
-      onboardingComplete: false,
-      primaryConcern: [],
-      notificationsOn: true,
-      reminderTime: null,
-    },
-    { status: 200 }
-  );
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const profile = await prisma.profile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    return NextResponse.json(
+      {
+        onboardingComplete: profile?.onboardingComplete ?? false,
+        primaryConcern: profile?.primaryConcern ?? [],
+        notificationsOn: profile?.notificationsOn ?? true,
+        reminderTime: profile?.reminderTime ?? null,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Get onboarding error:", error);
+    return NextResponse.json(
+      { error: "Something went wrong." },
+      { status: 500 }
+    );
+  }
 }

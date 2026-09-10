@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { HiRefresh, HiClock, HiCheck, HiChevronRight, HiChevronLeft, HiCalendar } from "react-icons/hi";
 import toast from "react-hot-toast";
 import { getPromptForMood, getAlternativePrompt, type MoodType, type JournalPrompt } from "@/lib/prompts";
@@ -59,7 +60,8 @@ const DEMO_ENTRIES = [
   },
 ];
 
-export default function JournalPage() {
+function JournalPageInner() {
+  const searchParams = useSearchParams();
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const [moodScore, setMoodScore] = useState(5);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -71,6 +73,14 @@ export default function JournalPage() {
   const [showCrisis, setShowCrisis] = useState(false);
   const [activeTab, setActiveTab] = useState<"write" | "history" | "trends">("write");
   const [entries, setEntries] = useState(DEMO_ENTRIES);
+
+  // Deep-link support: /journal?tab=trends (used by the dashboard's "My mood" card)
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "history" || tab === "trends" || tab === "write") {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   // Get prompt when mood changes
   useEffect(() => {
@@ -118,7 +128,6 @@ export default function JournalPage() {
           mood: selectedMood,
           moodScore,
           tags: selectedTags,
-          pseudonym: "Blue Elephant",
         }),
       });
 
@@ -573,5 +582,19 @@ export default function JournalPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function JournalPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+          <div className="animate-spin h-8 w-8 border-4 border-[var(--primary)] border-t-transparent rounded-full" />
+        </div>
+      }
+    >
+      <JournalPageInner />
+    </Suspense>
   );
 }

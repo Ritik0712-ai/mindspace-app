@@ -21,7 +21,7 @@ export default function DashboardPage() {
     { emoji: "📝", label: "Journal today", href: "/journal", color: "#7C6FF7" },
     { emoji: "🧘", label: "Meditate", href: "/resources", color: "#10B981" },
     { emoji: "👥", label: "Visit circles", href: "/circles", color: "#F59E0B" },
-    { emoji: "📊", label: "My mood", href: "/journal/trends", color: "#60A5FA" },
+    { emoji: "📊", label: "My mood", href: "/journal?tab=trends", color: "#60A5FA" },
   ];
 
   return (
