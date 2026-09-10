@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createUser } from "@/lib/mockAuth";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+import { generatePseudonym } from "@/lib/pseudonyms";
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,7 +30,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await createUser(email, password);
+    const normalizedEmail = email.toLowerCase();
+
+    const existing = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+    if (existing) {
+      return NextResponse.json(
+        { error: "An account with this email already exists" },
+        { status: 400 }
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const pseudonym = generatePseudonym();
+
+    const user = await prisma.user.create({
+      data: {
+        email: normalizedEmail,
+        password: passwordHash,
+        pseudonym: pseudonym.pseudonym,
+        avatarEmoji: pseudonym.emoji,
+        avatarColor: pseudonym.color,
+        profile: {
+          create: {},
+        },
+      },
+    });
 
     return NextResponse.json(
       {
@@ -45,10 +73,8 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    console.error("Signup error:", error);
     const message = error instanceof Error ? error.message : "Something went wrong";
-    return NextResponse.json(
-      { error: message },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

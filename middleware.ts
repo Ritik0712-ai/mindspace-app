@@ -16,6 +16,13 @@ export default withAuth(
     return NextResponse.next();
   },
   {
+    pages: {
+      // Without this, an unauthenticated request to a protected route gets
+      // bounced to NextAuth's built-in /api/auth/signin page instead of our
+      // real /login page — which then tries to redirect again and can get
+      // stuck. Telling withAuth about our custom page fixes that in one hop.
+      signIn: "/login",
+    },
     callbacks: {
       authorized: ({ token }) => !!token,
     },

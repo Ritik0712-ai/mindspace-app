@@ -1,15 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { HiChevronLeft, HiSun, HiMoon, HiBell, HiShieldCheck, HiDownload, HiTrash } from "react-icons/hi";
 import { generatePseudonym } from "@/lib/pseudonyms";
 
 export default function SettingsPage() {
+  // Shares state with the navbar's ThemeToggle via the same localStorage key
+  // + `dark` class on <html>, so the two controls stay in sync.
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [pseudonym, setPseudonym] = useState(generatePseudonym());
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setDarkMode(savedTheme === "dark" || (!savedTheme && systemPrefersDark));
+  }, []);
+
+  const handleToggleDarkMode = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("theme", next ? "dark" : "light");
+  };
 
   const handleRegeneratePseudonym = () => {
     setPseudonym(generatePseudonym());
@@ -94,7 +109,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <button
-                onClick={() => setDarkMode(!darkMode)}
+                onClick={handleToggleDarkMode}
                 className={`w-12 h-7 rounded-full transition-colors relative ${
                   darkMode ? "bg-[var(--primary)]" : "bg-[var(--surface-hover)]"
                 }`}
