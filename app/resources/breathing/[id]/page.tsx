@@ -119,12 +119,37 @@ export default function BreathingExercisePage({
 
       <div className="max-w-2xl mx-auto px-4 py-12 text-center" id="main-content">
         {/* Instructions */}
-        <div className="mb-8">
+        <div className="mb-6">
           <p className="text-[var(--text-secondary)] mb-2">{exercise.description}</p>
           <p className="text-sm text-[var(--text-muted)]">
             Cycles completed: {cycleCount}
           </p>
         </div>
+
+        {/* YouTube button */}
+        {exercise.youtubeUrl && (
+          <div className="mb-6">
+            <a
+              href={exercise.youtubeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-full text-sm font-medium text-red-400 hover:bg-red-500/20 transition-colors"
+            >
+              ▶ Watch Guided Video on YouTube
+            </a>
+          </div>
+        )}
+
+        {/* Benefits */}
+        {exercise.benefits && exercise.benefits.length > 0 && (
+          <div className="mb-8 flex flex-wrap justify-center gap-2">
+            {exercise.benefits.map((b, i) => (
+              <span key={i} className="px-3 py-1 rounded-full text-xs bg-[var(--primary)]/10 text-[var(--primary)]">
+                ✓ {b}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Breathing Circle Animation */}
         <div className="relative w-64 h-64 mx-auto mb-12">
