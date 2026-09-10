@@ -126,10 +126,9 @@ export default function ResourcesPage() {
             </p>
             <div className="space-y-4">
               {COURSES.map((course) => (
-                <Link
+                <div
                   key={course.id}
-                  href={`/resources/course/${course.id}`}
-                  className="block bg-[var(--surface)] rounded-2xl p-4 border border-[var(--surface-hover)] hover:shadow-lg transition-all"
+                  className="bg-[var(--surface)] rounded-2xl p-4 border border-[var(--surface-hover)] hover:shadow-lg transition-all"
                 >
                   <div className="flex items-start gap-4">
                     <div className="w-14 h-14 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-2xl flex-shrink-0">
@@ -147,13 +146,38 @@ export default function ResourcesPage() {
                       <p className="text-sm text-[var(--text-secondary)] mb-2">
                         {course.description}
                       </p>
-                      <span className="inline-flex items-center gap-1 text-xs text-[var(--primary)]">
-                        <HiBookOpen className="w-3 h-3" />
-                        {course.lessons} lessons
-                      </span>
+                      {/* Methods tags */}
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {course.methods.slice(0, 3).map((method, i) => (
+                          <span
+                            key={i}
+                            className="px-2 py-0.5 rounded-full text-xs bg-[var(--primary)]/10 text-[var(--primary)]"
+                          >
+                            {method}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Link
+                          href={`/resources/course/${course.id}`}
+                          className="inline-flex items-center gap-1 text-xs text-[var(--primary)] hover:underline"
+                        >
+                          <HiBookOpen className="w-3 h-3" />
+                          {course.lessons} lessons · {course.duration}
+                        </Link>
+                        <a
+                          href={course.youtubeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-400 font-medium"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          ▶ YouTube Playlist
+                        </a>
+                      </div>
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </motion.div>
@@ -173,10 +197,9 @@ export default function ResourcesPage() {
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {BREATHING_EXERCISES.map((exercise) => (
-                <Link
+                <div
                   key={exercise.id}
-                  href={`/resources/breathing/${exercise.id}`}
-                  className="block bg-[var(--surface)] rounded-2xl p-4 border border-[var(--surface-hover)] hover:shadow-lg transition-all"
+                  className="bg-[var(--surface)] rounded-2xl p-4 border border-[var(--surface-hover)] hover:shadow-lg transition-all"
                 >
                   <h3 className="font-semibold text-[var(--text-primary)] mb-1">
                     {exercise.title}
@@ -184,10 +207,34 @@ export default function ResourcesPage() {
                   <p className="text-sm text-[var(--primary)] font-medium mb-2">
                     {exercise.pattern}
                   </p>
-                  <p className="text-sm text-[var(--text-secondary)]">
+                  <p className="text-sm text-[var(--text-secondary)] mb-3">
                     {exercise.description}
                   </p>
-                </Link>
+                  {/* Benefits */}
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {exercise.benefits.slice(0, 2).map((b, i) => (
+                      <span key={i} className="px-2 py-0.5 rounded-full text-xs bg-[var(--primary)]/10 text-[var(--primary)]">
+                        {b}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/resources/breathing/${exercise.id}`}
+                      className="inline-flex items-center gap-1 text-xs text-[var(--primary)] hover:underline"
+                    >
+                      ▶ Practice Now
+                    </Link>
+                    <a
+                      href={exercise.youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-400 font-medium"
+                    >
+                      ▶ YouTube Guide
+                    </a>
+                  </div>
+                </div>
               ))}
             </div>
           </motion.div>
@@ -215,13 +262,35 @@ export default function ResourcesPage() {
                     <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-2xl flex-shrink-0">
                       {worksheet.emoji}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-semibold text-[var(--text-primary)] mb-1">
                         {worksheet.title}
                       </h3>
-                      <p className="text-sm text-[var(--text-secondary)]">
+                      <p className="text-sm text-[var(--text-secondary)] mb-3">
                         {worksheet.description}
                       </p>
+                      {/* Steps preview */}
+                      <div className="space-y-1 mb-3">
+                        {worksheet.steps.slice(0, 2).map((step, i) => (
+                          <p key={i} className="text-xs text-[var(--text-muted)] flex gap-1">
+                            <span className="text-[var(--primary)] font-medium">{i + 1}.</span>
+                            {step.length > 60 ? step.slice(0, 60) + "…" : step}
+                          </p>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-[var(--text-muted)]">
+                          {worksheet.steps.length} steps
+                        </span>
+                        <a
+                          href={worksheet.youtubeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-400 font-medium"
+                        >
+                          ▶ YouTube Guide
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>
