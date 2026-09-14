@@ -51,17 +51,10 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
+  // DO NOT add a `cookies:` block here.
+  // Hardcoding `sessionToken.name` breaks NextAuth's secure-cookie auto-detection:
+  // `withAuth()` in `middleware.ts` calls the same `getToken()` logic and computes
+  // a different cookie name in production, causing redirect loops to /login.
   callbacks: {
     async jwt({ token, user, account, trigger, session }) {
       if (user) {

@@ -22,6 +22,22 @@ export async function POST(request: NextRequest) {
     }
     const userId = session.user.id;
 
+    // Verify user exists in database to avoid P2003 foreign-key crash on stale JWT
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!userExists) {
+      return NextResponse.json(
+        {
+          error: "Your session has expired. Please log in again.",
+          code: "SESSION_STALE",
+        },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
       primaryConcern = [],
