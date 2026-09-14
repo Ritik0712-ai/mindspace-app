@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSession, signIn } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Link from "next/link";
@@ -101,7 +101,13 @@ export default function OnboardingPage() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
+        if (data?.code === "SESSION_STALE") {
+          toast.error(data.error || "Your session has expired. Please log in again.");
+          await signOut({ redirect: false });
+          window.location.href = "/login";
+          return;
+        }
         throw new Error(data.error || "Something went wrong");
       }
 

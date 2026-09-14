@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { getAIJournalResponse } from "@/lib/openai";
+import { getAIJournalResponse } from "@/lib/ai";
 import { detectCrisis, CRISIS_HELPLINES } from "@/lib/crisis";
 
 export async function POST(request: NextRequest) {
